@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager  # Use to define async setup and tear
 from database import database, engine, metadata
 import models   # registers my 'tasks' table
 from models import tasks
-from schemas import TaskCreate, Task
+from schemas import TaskCreate, Task, TaskUpdate
+from fastapi.middleware.cors import CORSMiddleware
 
 # Lifespan event handler
 # Runs when app starts and stops
@@ -28,6 +29,18 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI app and attach custom lifespan handler
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    "http://localhost:3000", # My Next.js frontend address
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Define route (endpoint) for HTTP GET requests to the root URL
 # When someone accesses root of API, this function is called and returns JSON message
@@ -71,22 +84,20 @@ async def read_task(task_id: int):
 # PUT /tasks/{task_id} endpoint
 # update an existing task
 @app.put("/tasks/{task_id}", response_model=Task)
-async def update_task(task_id: int, updated_task: TaskCreate):
-    query = tasks.update().where(tasks.c.id == task.id).values(
-        title=updated_task.title,
-        description=updated_task.description,
-        due_date=updated_task.due_date
-    )
+async def update_task(task_id: int, updated_task: TaskUpdate):
+
+    # Only update the fields that are set in the request
+    update_data = updated_task.model_dump(exclude_unset=True)
+    query = tasks.update().where(tasks.c.id == task_id).values(**update_data)
+
     await database.execute(query)
 
-    # Return updated task
-    return {
-        "id": task_id,
-        "title": updated_task.title,
-        "description": updated_task.description,
-        "due_date": updated_task.due_date,
-        "completed": False  # Can update this too if add checkbox later on
-    }
+    # Fetch the updated task from the database to return accurate info
+    updated = await database.fetch_one(tasks.select().where(tasks.c.id == task_id))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return updated
+
 
 
 # DELETE /tasks/{task_id} endpoint

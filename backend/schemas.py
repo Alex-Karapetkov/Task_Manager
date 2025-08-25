@@ -4,6 +4,12 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    completed: Optional[bool] = None
+
 # For creating a new task (client input)
 # used when client sends data to create a new task
 class TaskCreate(BaseModel):

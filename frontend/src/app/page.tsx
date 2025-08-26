@@ -2,6 +2,7 @@
 "use client"  // Next.js directive to mark component as client side component
 import styles from "./page.module.css";
 import React, { useEffect, useState } from "react"; // React hooks for managing side effects and component state
+import TaskModal from "./components/TaskModal"
 
 // Defines shape of Task object
 type Task = {
@@ -163,174 +164,41 @@ export default function Home() {
               <li
                 key={task.id}
                 onClick={() => setSelectedTask(task)}
-                style={{
-                  cursor: "pointer",
-                  fontWeight: selectedTask?.id === task.id ? "bold" : "normal",
-                  textDecoration: task.completed ? "line-through" : "none",
-                  color: task.completed ? "gray" : "black",
-                }}>
+                className={`cursor-pointer p-2 rounded-md ${selectedTask?.id === task.id ? "font-bold" : "font-normal"
+                  } ${task.completed ? "line-through text-gray-400" : "text-black"} mb-2}`}>
 
-                <strong>{task.title}</strong>
-                {task.description && <p>{task.description}</p>}
-                {task.due_date && <small>Due: {new Date(task.due_date).toLocaleDateString()}</small>}
-                <p>Status: {task.completed ? "Completed" : "Incomplete"}</p>
+                <div className="mb-1">
+                  <strong>{task.title}</strong>
+                </div>
+
+                {task.description && (
+                  <div className="mb-1 text-gray-700">{task.description}</div>
+                )}
+
+
+                {task.due_date && (
+                  <div className="mb-1 text-sm text-gray-500">
+                    Due: {new Date(task.due_date).toLocaleDateString()}
+                  </div>
+                )}
+
+
+                <div className="text-sm">{task.completed ? "Completed" : "Incomplete"}</div>
               </li>
             ))}
           </ol>
         )}
 
-        {/* Edit form - only show if a task is selected */}
-        {selectedTask && (
-          <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
-            <h2>Edit Task</h2>
+        {/* Modal for editing task */}
+        <TaskModal
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          formData={formData}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+        />
 
-            <label>
-              Title: <br />
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className={styles.formField}
-                required
-              />
-            </label>
-            <br />
-
-            <label>
-              Description: <br />
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className={styles.formField}
-              />
-            </label>
-            <br />
-
-            <label>
-              Due Date: <br />
-              <input
-                type="date"
-                name="due_date"
-                value={formData.due_date}
-                onChange={handleChange}
-                className={styles.formField}
-              />
-            </label>
-            <br />
-
-            <label>
-              Completed:{" "}
-              <input
-                type="checkbox"
-                name="completed"
-                checked={formData.completed}
-                onChange={handleChange}
-              />
-            </label>
-            <br />
-
-            <button type="submit">Save</button>
-            <button type="button" onClick={() => setSelectedTask(null)} style={{ marginLeft: 8 }}>
-              Cancel
-            </button>
-          </form>
-        )}
       </main>
     </div>
   );
 }
-
-
-// export default function Home() {
-//   return (
-//     <div className={styles.page}>
-//       <main className={styles.main}>
-//         <Image
-//           className={styles.logo}
-//           src="/next.svg"
-//           alt="Next.js logo"
-//           width={180}
-//           height={38}
-//           priority
-//         />
-//         <ol>
-//           <li>
-//            Hello <code>src/app/page.tsx</code>.
-//           </li>
-//           <li>Save and see your changes instantly.</li>
-//         </ol>
-
-//         <div className={styles.ctas}>
-//           <a
-//             className={styles.primary}
-//             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//           >
-//             <Image
-//               className={styles.logo}
-//               src="/vercel.svg"
-//               alt="Vercel logomark"
-//               width={20}
-//               height={20}
-//             />
-//             Deploy now
-//           </a>
-//           <a
-//             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//             className={styles.secondary}
-//           >
-//             Read our docs
-//           </a>
-//         </div>
-//       </main>
-//       <footer className={styles.footer}>
-//         <a
-//           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <Image
-//             aria-hidden
-//             src="/file.svg"
-//             alt="File icon"
-//             width={16}
-//             height={16}
-//           />
-//           Learn
-//         </a>
-//         <a
-//           href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <Image
-//             aria-hidden
-//             src="/window.svg"
-//             alt="Window icon"
-//             width={16}
-//             height={16}
-//           />
-//           Examples
-//         </a>
-//         <a
-//           href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <Image
-//             aria-hidden
-//             src="/globe.svg"
-//             alt="Globe icon"
-//             width={16}
-//             height={16}
-//           />
-//           Go to nextjs.org →
-//         </a>
-//       </footer>
-//     </div>
-//   );
-// }

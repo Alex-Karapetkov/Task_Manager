@@ -10,10 +10,14 @@
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
-    "next": "15.4.6",
+    "bcryptjs": "^3.0.2",
+    "next": "^15.5.2",
+    "next-auth": "^4.24.11",
     "postcss": "^8.5.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "tailwindcss": "^3.3.2"
   },
   "devDependencies": {

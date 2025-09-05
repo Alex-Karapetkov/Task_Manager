@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException # Import core of framework to build API; httpexception raises api errors
+from fastapi import FastAPI, HTTPException, Depends # Import core of framework to build API; httpexception raises api errors
 from contextlib import asynccontextmanager  # Use to define async setup and teardown logic 
 from database import database, engine, metadata
 import models   # registers my 'tasks' table
 from models import tasks
 from schemas import TaskCreate, Task, TaskUpdate
 from fastapi.middleware.cors import CORSMiddleware
+
+
 
 # Lifespan event handler
 # Runs when app starts and stops
@@ -56,7 +58,8 @@ async def create_task(task: TaskCreate):
         title=task_data["title"],
         description=task_data.get("description"),
         due_date=task_data.get("due_date"),
-        completed=False
+        completed=False,
+        user_id=1   # default value for now; change later
     )
     last_record_id = await database.execute(query)  # executes the SQL insert async and returns ID of newly created record
     
@@ -84,19 +87,20 @@ async def read_task(task_id: int):
 # PUT /tasks/{task_id} endpoint
 # update an existing task
 @app.put("/tasks/{task_id}", response_model=Task)
-async def update_task(task_id: int, updated_task: TaskUpdate):
+async def update_task(task_id: int, task_update: TaskUpdate):
 
-    # Only update the fields that are set in the request
-    update_data = updated_task.model_dump(exclude_unset=True)
+    # only update fields that are set
+    update_data = task_update.model_dump(exclude_unset=True)
+
     query = tasks.update().where(tasks.c.id == task_id).values(**update_data)
+    result = await database.execute(query)
 
-    await database.execute(query)
-
-    # Fetch the updated task from the database to return accurate info
-    updated = await database.fetch_one(tasks.select().where(tasks.c.id == task_id))
-    if not updated:
+    # fetch updated task
+    updated_task = await database.fetch_one(tasks.select().where(tasks.c.id == task_id))
+    if not updated_task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return updated
+    
+    return updated_task
 
 
 
